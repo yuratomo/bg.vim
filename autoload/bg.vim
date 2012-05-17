@@ -1,5 +1,10 @@
 
 function! bg#do(...)
+  if !exists('g:loaded_vimproc')
+    echoerr "bg.vim is depend on vimproc. Please install it."
+    return
+  endif
+
   if len(a:000) == 0
     echo '[usage]'
     echo '  :BG grep grep-args'
@@ -15,11 +20,6 @@ function! bg#do(...)
 endfunction
 
 function! bg#grep(...)
-  if !exists('g:loaded_vimproc')
-    echoerr "bg.vim is depend on vimproc. Please install it."
-    return
-  endif
-
   if exists('g:bg')
     call bg#cancel()
   endif
@@ -38,13 +38,26 @@ function! bg#grep(...)
   set updatetime=1000
   set visualbell
   set t_vb=
+  redraw
   echo &grepprg . ' ' . join(a:000, ' ')
-  au! CursorHold * call bg#sync()
+
+  augroup bg
+    au!
+    au! CursorHold * call bg#sync()
+  augroup END
 
 endfunction
 
 function! bg#sync()
-  let lines = g:bg.pipe.stdout.read_lines()
+  if !exists('g:bg')
+    return
+  endif
+
+  let lines = []
+  if g:bg.pipe.is_valid
+    let lines = g:bg.pipe.stdout.read_lines()
+  endif
+
   let len = len(lines)
   if len > 0
     "save winow info before change quickfix window
@@ -90,13 +103,7 @@ function! bg#sync()
   echo '[bg] finding now...(' . g:bg.total .')'
 
   if g:bg.pipe.stdout.eof
-    call g:bg.pipe.waitpid()
-    echo '[bg] find end (total ' . g:bg.total . ')'
-    let &updatetime = g:bg.updatetime
-    let &visualbell = g:bg.visualbell
-    let &t_vb       = g:bg.t_vb
-    unlet g:bg
-    au! CursorHold *
+    call s:dispose()
   else
     call feedkeys("\<ESC>", 'n')
   endif
@@ -107,5 +114,28 @@ function! bg#cancel()
     return
   endif
   call g:bg.pipe.kill(15)
+  call s:dispose()
+endfunction
+
+function! s:dispose()
+  if !exists('g:bg')
+    return
+  endif
+
+  echo '[bg] find end (total ' . g:bg.total . ')'
+  let &updatetime = g:bg.updatetime
+  let &visualbell = g:bg.visualbell
+  let &t_vb       = g:bg.t_vb
+
+  if g:bg.pipe.is_valid
+    call g:bg.pipe.waitpid()
+    unlet g:bg.pipe
+  endif
+  unlet g:bg
+
+  augroup bg
+    au!
+  augroup END
+
 endfunction
 

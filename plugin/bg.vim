@@ -7,9 +7,13 @@ if exists('g:loaded_bg') && g:loaded_bg == 1
   finish
 endif
 
+if !has("autocmd")
+  finish
+endif
+
 function!  bg#list(A, L, P)
   let items = []
-  for cmd in ['grep', 'cancel']
+  for cmd in ['grep ', 'cancel']
     if cmd =~ '^'.a:A
       call add(items, cmd)
     endif
