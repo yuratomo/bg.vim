@@ -7,25 +7,42 @@ function! bg#do(...)
 
   if len(a:000) == 0
     echo '[usage]'
-    echo '  :BG grep grep-args'
-    echo '  :BG cancel'
+    echo '  grep)'
+    echo '    :Background grep grep-args'
+    echo ''
+    echo '  make)'
+    echo '    :Background make make-args'
+    echo ''
+    echo '  cancel)'
+    echo '    :Background cancel'
     return
   endif
 
-  if a:000[0] == 'grep'
-    call bg#grep(join(a:000[1:], ' '))
-  elseif a:000[0] == 'cancel'
+  if stridx('grep', a:000[0]) == 0
+    let cmd = split(&grepprg, ' ')
+    call extend(cmd, a:000[1:])
+    call bg#proc(cmd)
+    let g:bg.errorformat = &errorformat
+    let &errorformat = &grepformat
+
+  elseif stridx('make', a:000[0]) == 0
+    let cmd = split(&makeprg, ' ')
+    call extend(cmd, a:000[1:])
+    call bg#proc(cmd)
+    let g:bg.errorformat = &errorformat
+
+  elseif stridx('cancel', a:000[0]) == 0
     call bg#cancel()
   endif
 endfunction
 
-function! bg#grep(...)
+function! bg#proc(cmd)
   if exists('g:bg')
     call bg#cancel()
   endif
 
   let g:bg = {}
-  let g:bg.pipe = vimproc#popen3(&grepprg . ' ' . join(a:000, ' '))
+  let g:bg.pipe = vimproc#popen3(a:cmd)
   if !g:bg.pipe.is_valid
     unlet g:bg
     return
@@ -39,7 +56,7 @@ function! bg#grep(...)
   set visualbell
   set t_vb=
   redraw
-  echo &grepprg . ' ' . join(a:000, ' ')
+  echo join(a:cmd, ' ')
 
   augroup bg
     au!
@@ -100,7 +117,7 @@ function! bg#sync()
     endif
     exe 'cd ' . old_pwd
   endif
-  echo '[bg] finding now...(' . g:bg.total .')'
+  echo '[bg] processing...(' . g:bg.total .')'
 
   if g:bg.pipe.stdout.eof
     call s:dispose()
@@ -113,19 +130,19 @@ function! bg#cancel()
   if !exists('g:bg.pipe') || !g:bg.pipe.is_valid
     return
   endif
-  call g:bg.pipe.kill(15)
+  try
+    call g:bg.pipe.kill(15)
+  catch /.*/
+  endtry
   call s:dispose()
 endfunction
 
 function! s:dispose()
-  if !exists('g:bg')
-    return
-  endif
-
-  echo '[bg] find end (total ' . g:bg.total . ')'
-  let &updatetime = g:bg.updatetime
-  let &visualbell = g:bg.visualbell
-  let &t_vb       = g:bg.t_vb
+  echo '[bg] end (total ' . g:bg.total . ')'
+  let &updatetime  = g:bg.updatetime
+  let &visualbell  = g:bg.visualbell
+  let &t_vb        = g:bg.t_vb
+  let &errorformat = g:bg.errorformat
 
   if g:bg.pipe.is_valid
     call g:bg.pipe.waitpid()

@@ -13,11 +13,11 @@ Usage
 -----
 
 grep
-    :BG grep [grep-args]
+    :Background grep [grep-args]
 
 
 cancel
-    :BG cancel
+    :Background cancel
 
 
 HISTORY
