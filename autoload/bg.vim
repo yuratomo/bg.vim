@@ -21,14 +21,14 @@ function! bg#do(...)
   if stridx('grep', a:000[0]) == 0
     let cmd = split(&grepprg, ' ')
     call extend(cmd, a:000[1:])
-    call bg#proc(cmd)
+    call bg#start(cmd)
     let g:bg.errorformat = &errorformat
     let &errorformat = &grepformat
 
   elseif stridx('make', a:000[0]) == 0
     let cmd = split(&makeprg, ' ')
     call extend(cmd, a:000[1:])
-    call bg#proc(cmd)
+    call bg#start(cmd)
     let g:bg.errorformat = &errorformat
 
   elseif stridx('cancel', a:000[0]) == 0
@@ -36,7 +36,7 @@ function! bg#do(...)
   endif
 endfunction
 
-function! bg#proc(cmd)
+function! bg#start(cmd)
   if exists('g:bg')
     call bg#cancel()
   endif

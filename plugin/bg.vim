@@ -1,6 +1,6 @@
 " File: plugin/bg.vim
 " Last Modified: 2012.05.16
-" Version: 0.1.0
+" Version: 0.3.0
 " Author: yuratomo (twitter @yusetomo)
 
 if exists('g:loaded_bg') && g:loaded_bg == 1
