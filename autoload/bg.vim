@@ -26,7 +26,8 @@ function! bg#do(...)
     let &errorformat = &grepformat
 
   elseif stridx('make', a:000[0]) == 0
-    let cmd = split(&makeprg, ' ')
+    "let cmd = split(&makeprg, ' ')
+    let cmd = [ &makeprg ]
     call extend(cmd, a:000[1:])
     call bg#start(cmd)
     let g:bg.errorformat = &errorformat
