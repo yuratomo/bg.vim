@@ -26,7 +26,10 @@ function! bg#do(...)
     let &errorformat = &grepformat
 
   elseif stridx('make', a:000[0]) == 0
-    "let cmd = split(&makeprg, ' ')
+    if !executable(&makeprg)
+      exe 'echoerr "' . &makeprg . ' is not exists."'
+      return
+    endif
     let cmd = [ &makeprg ]
     call extend(cmd, a:000[1:])
     call bg#start(cmd)
@@ -63,6 +66,9 @@ function! bg#start(cmd)
     au!
     au! CursorHold * call bg#sync()
   augroup END
+
+  copen
+  wincmd p
 
 endfunction
 

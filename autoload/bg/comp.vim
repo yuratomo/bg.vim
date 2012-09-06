@@ -1,10 +1,11 @@
 
-let g:bg_completion_items = 
+call bg#api#add_completion(
   \[
   \ 'grep ',
   \ 'make ',
   \ 'cancel',
   \]
+\)
 
 function!  bg#comp#list(A, L, P)
   let items = []
