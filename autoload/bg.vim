@@ -1,3 +1,4 @@
+let s:lastline = ''
 
 function! bg#do(...)
   if !exists('g:loaded_vimproc')
@@ -45,6 +46,7 @@ function! bg#start(cmd)
     call bg#cancel()
   endif
 
+  let s:lastline = 'processing...'
   let g:bg = {}
   let g:bg.pipe = vimproc#popen3(a:cmd)
   if !g:bg.pipe.is_valid
@@ -123,8 +125,11 @@ function! bg#sync()
       exe old_winno . "wincmd w"
     endif
     exe 'cd ' . old_pwd
+    let s:lastline = '> ' . lines[-1]
   endif
-  echo '[bg] processing...(' . g:bg.total .')'
+
+  let header = '[bg:' . g:bg.total . '] '
+  echo header . strpart( s:lastline, 0, winwidth(0) - &numberwidth - len(header))
 
   if g:bg.pipe.stdout.eof
     call s:dispose()
