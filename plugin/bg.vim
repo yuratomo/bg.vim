@@ -11,6 +11,10 @@ if !has("autocmd")
   finish
 endif
 
+if !exists('g:bg_message_adjust')
+  let g:bg_message_adjust = 10
+endif
+
 command! -nargs=* 
   \ -complete=customlist,bg#comp#list
   \ Background

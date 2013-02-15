@@ -70,6 +70,8 @@ function! bg#start(cmd)
   augroup END
 
   copen
+  let g:bg.bufnr = winbufnr(winnr())
+  wincmd J
   wincmd p
 
 endfunction
@@ -93,20 +95,23 @@ function! bg#sync()
     let lline = 1
     let cline = 1
     let cwinno = 0
-    if g:bg.total == 0
+
+    let cwinno = bufwinnr(g:bg.bufnr)
+    if cwinno != -1
+      exe cwinno . 'wincmd w'
+      exe 'cd ' . g:bg.pwd
+    else
       copen
       exe 'cd ' . g:bg.pwd
       let g:bg.bufnr = winbufnr(winnr())
+    endif
+
+    if g:bg.total == 0
       cgetexpr lines
     else
-      let cwinno = bufwinnr(g:bg.bufnr)
-      if cwinno != -1
-        exe cwinno . 'wincmd w'
-        exe 'cd ' . g:bg.pwd
-        let lline = line('$')
-        let cline = line('.')
-        let ccol  = col('.')
-      endif
+      let lline = line('$')
+      let cline = line('.')
+      let ccol  = col('.')
       caddexpr lines
     endif
     let g:bg.total += len
@@ -129,7 +134,7 @@ function! bg#sync()
   endif
 
   let header = '[bg:' . g:bg.total . '] '
-  echo header . strpart( s:lastline, 0, winwidth(0) - &numberwidth - len(header))
+  echo header . strpart( substitute(s:lastline, '\s\+', ' ', 'g'), 0, winwidth(0) - &numberwidth - len(header) - g:bg_message_adjust)
 
   if g:bg.pipe.stdout.eof
     call s:dispose()
