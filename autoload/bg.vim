@@ -69,6 +69,7 @@ function! bg#start(cmd)
     au! CursorHold * call bg#sync()
   augroup END
 
+  cgetexpr []
   copen
   let g:bg.bufnr = winbufnr(winnr())
   wincmd J
